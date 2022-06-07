@@ -1,6 +1,6 @@
 import Fastify, { FastifyRequest, FastifyReply } from "fastify";
-import fjwt, { JWT } from "fastify-jwt";
-import swagger from "fastify-swagger";
+import fjwt, { JWT } from "@fastify/jwt";
+import swagger from "@fastify/swagger";
 import { withRefResolver } from "fastify-zod";
 import userRoutes from "./modules/user/user.route";
 import productRoutes from "./modules/product/product.route";
@@ -17,7 +17,7 @@ declare module "fastify" {
   }
 }
 
-declare module "fastify-jwt" {
+declare module "@fastify/jwt" {
   interface FastifyJWT {
     user: {
       id: number;
@@ -58,21 +58,46 @@ function buildServer() {
     server.addSchema(schema);
   }
 
-  server.register(
-    swagger,
-    withRefResolver({
-      routePrefix: "/docs",
-      exposeRoute: true,
-      staticCSP: true,
-      openapi: {
-        info: {
-          title: "Fastify API",
-          description: "API for some products",
-          version,
-        },
+  // server.register(
+  //   swagger,
+  //   withRefResolver({
+  //     routePrefix: "/docs",
+  //     exposeRoute: true,
+  //     staticCSP: true,    
+  //     openapi: {
+  //       info: {
+  //         title: "Fastify API",
+  //         description: "API for some products",
+  //         version,
+  //       },
+  //     },
+  //   })
+  // );
+
+  server.register(swagger,{
+    routePrefix: '/doc',
+    swagger: {
+      info: {
+        title: 'Fastify API',
+        description: 'API for some products',
+        version
       },
-    })
-  );
+      securityDefinitions: {
+      apiKey: {
+        type: 'apiKey',
+        name: 'apiKey',
+        in: 'header'
+      }
+    },
+    host: 'localhost:3000',
+    schemes: ['http'],
+    consumes: ['application/json'],
+    produces: ['application/json']
+  },
+  hideUntagged: true,
+  exposeRoute: true
+},
+);
 
   server.register(userRoutes, { prefix: "api/users" });
   server.register(productRoutes, { prefix: "api/products" });
